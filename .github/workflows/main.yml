@@ -1,4 +1,4 @@
-name: Build and Deploy to EC2
+name: Build and Deploy (Docker) to EC2
 
 on:
   push:
@@ -9,45 +9,28 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: production
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: ${{ secrets.NODE_VERSION || '20' }}
-          cache: 'npm'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build the project
-        run: npm run build
-
-      - name: Archive build files
-        run: |
-          mkdir -p artifact
-          # Exclude node_modules to keep transfer small
-          git ls-files > /tmp/files.txt
-          # Include built output (adjust "build" if your output folder has a different name)
-          echo "build" >> /tmp/files.txt || true
-          tar -czf artifact/site.tar.gz --files-from=/tmp/files.txt || tar -czf artifact/site.tar.gz .
-
-      - name: Copy files to remote server (SCP)
-        uses: appleboy/scp-action@v0.1.6
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          source: "artifact/site.tar.gz"
-          target: ${{ secrets.REMOTE_PATH }}
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/launchix-admin:latest
 
-      - name: Extract and deploy on EC2, install dependencies, and restart PM2
+      - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -56,37 +39,13 @@ jobs:
           port: 22
           script: |
             set -e
-            mkdir -p "${{ secrets.REMOTE_PATH }}"
-            cd "${{ secrets.REMOTE_PATH }}"
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/launchix-admin:latest
 
-            # Backup existing file (optional)
-            if [ -f site.tar.gz ]; then
-              mv site.tar.gz "site.tar.gz.$(date +%s)" || true
-            fi
+            # Stop old container (if running)
+            docker ps -q --filter "name=launchix-admin" | grep -q . && docker stop launchix-admin && docker rm launchix-admin || true
 
-            # Move artifact into place and extract
-            mv ~/site.tar.gz ./ || true
-            tar -xzf site.tar.gz -C . || tar -xzf site.tar.gz || true
-
-            # Set permissions
-            chmod -R 755 .
-
-            # Install production dependencies
-            if [ -f package.json ]; then
-              npm ci --production
-            fi
-
-            # Reload or restart using PM2
-            if command -v pm2 >/dev/null 2>&1; then
-              if [ -n "${{ secrets.PM2_APP_NAME }}" ]; then
-                pm2 reload "${{ secrets.PM2_APP_NAME }}" || \
-                pm2 start ecosystem.config.js --only "${{ secrets.PM2_APP_NAME }}" || \
-                pm2 start npm --name "${{ secrets.PM2_APP_NAME }}" -- start
-              else
-                pm2 reload ecosystem.config.js || pm2 restart all || pm2 start ecosystem.config.js
-              fi
-              pm2 save
-            else
-              echo "PM2 not found on remote. Please install it globally (npm i -g pm2)."
-              exit 1
-            fi
+            # Run new container
+            docker run -d --name launchix-admin \
+              -p 3000:3000 \
+              --restart=always \
+              ${{ secrets.DOCKERHUB_USERNAME }}/launchix-admin:latest
