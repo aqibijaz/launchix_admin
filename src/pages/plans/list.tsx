@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useTable, useNavigation } from "@refinedev/core";
+import { useTable, useNavigation, useDelete } from "@refinedev/core";
 import { Button } from "@/components/ui/button";
 import {
     Table,
@@ -15,6 +15,7 @@ import { Plus, Pencil, Trash } from "lucide-react";
 
 export const PlanList = () => {
     const { create, edit } = useNavigation();
+    const { mutate: deletePlan } = useDelete();
     const {
         tableQuery: { data, isLoading },
         setCurrentPage,
@@ -22,21 +23,6 @@ export const PlanList = () => {
         pageSize,
         pageCount,
     } = useTable({ resource: "plans", pagination: { currentPage: 1, pageSize: 10 } });
-
-    //    const {
-    //       tableQuery: { data, isLoading },
-    //       setCurrentPage,
-    //       currentPage,
-    //       pageSize,
-    //       pageCount,
-    //       setFilters,
-    //     } = useTable<User>({
-    //       resource: "users",
-    //       pagination: {
-    //         currentPage: 1,
-    //         pageSize: 10,
-    //       },
-    //     });
 
     const plans = data?.data ?? [];
     const total = data?.total || 0;
@@ -113,11 +99,15 @@ export const PlanList = () => {
                                                 >
                                                     <Pencil className="w-4 h-4" />
                                                 </Button>
+
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    color="destructive"
-                                                    onClick={() => console.log("TODO: Delete")}
+                                                    onClick={() => {
+                                                        if (confirm(`Are you sure you want to delete "${plan.name}"?`)) {
+                                                            deletePlan({ resource: "plans", id: plan._id });
+                                                        }
+                                                    }}
                                                 >
                                                     <Trash className="w-4 h-4 text-red-500" />
                                                 </Button>
