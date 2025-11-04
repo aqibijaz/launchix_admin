@@ -19,7 +19,10 @@ import { authProvider } from "./providers/authProvider";
 import { UserList } from "./pages/users/list";
 import { UserShow } from "./pages/users/show";
 import { dataProviders } from "./providers/dataProviderManager";
-import { HiOutlineUsers } from "react-icons/hi2";
+import { HiOutlineCreditCard, HiOutlineUsers } from "react-icons/hi2";
+import { PlanList } from "./pages/plans/list";
+import { PlanCreate } from "./pages/plans/create";
+import { PlanEdit } from "./pages/plans/edit";
 
 
 const SignInPage = () => (
@@ -166,6 +169,16 @@ function App() {
                   icon: <HiOutlineUsers size={18} />
                 },
               },
+              {
+                name: "plans",
+                list: "/plans",
+                create: "/plans/create",
+                edit: "/plans/edit/:id",
+                meta: {
+                  label: "Plans",
+                  icon: <HiOutlineCreditCard size={18} />,
+                },
+              },
             ]}
             options={{
               syncWithLocation: true,
@@ -201,7 +214,13 @@ function App() {
                   <Route path="show/:id" element={<UserShow />} />
                 </Route>
 
-                
+                <Route path="/plans">
+                  <Route index element={<PlanList />} />
+                  <Route path="create" element={<PlanCreate />} />
+                  <Route path="edit/:id" element={<PlanEdit />} />
+                </Route>
+
+
               </Route>
 
               <Route path="*" element={<ErrorComponent />} />
