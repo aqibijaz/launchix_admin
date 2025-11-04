@@ -60,4 +60,5 @@ export const planDataProvider: DataProvider = {
     },
 
     getApiUrl: () => API_URL,
+
 };
