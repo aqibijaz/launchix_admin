@@ -65,10 +65,15 @@ jobs:
             echo "🧹 Cleaning old build..."
             rm -rf old_build || true
             mkdir -p old_build
-            mv * old_build/ || true
+
+            # Move everything except old_build and artifact (if exist)
+            shopt -s extglob
+            mv !(old_build|artifact) old_build/ 2>/dev/null || true
+            shopt -u extglob
 
             echo "📦 Extracting new build..."
-            tar -xzf artifact/site.tar.gz -C . 
+            # since SCP copies directly to REMOTE_PATH, adjust path here
+            tar -xzf site.tar.gz -C . || tar -xzf artifact/site.tar.gz -C . || true
 
             echo "📦 Installing production dependencies..."
             npm ci --omit=dev
@@ -87,3 +92,4 @@ jobs:
 
             pm2 save
             echo "✅ Deployment completed successfully!"
+
