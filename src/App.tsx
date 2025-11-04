@@ -18,8 +18,6 @@ import { SignIn, SignUp, useAuth, useUser } from "@clerk/clerk-react";
 import { authProvider } from "./providers/authProvider";
 import { UserList } from "./pages/users/list";
 import { UserShow } from "./pages/users/show";
-import { BrandList } from "./pages/brands/list";
-import { BrandShow } from "./pages/brands/show";
 import { dataProviders } from "./providers/dataProviderManager";
 import { HiOutlineUsers } from "react-icons/hi2";
 
@@ -168,12 +166,6 @@ function App() {
                   icon: <HiOutlineUsers size={18} />
                 },
               },
-              // {
-              //   name: "brands",
-              //   list: "/brands",
-              //   show: "/brands/show/:id",
-              //   meta: { dataProviderName: "brands" },
-              // },
             ]}
             options={{
               syncWithLocation: true,
@@ -209,11 +201,7 @@ function App() {
                   <Route path="show/:id" element={<UserShow />} />
                 </Route>
 
-                {/* Brands */}
-                <Route path="/brands">
-                  <Route index element={<BrandList />} />
-                  <Route path="show/:id" element={<BrandShow />} />
-                </Route>
+                
               </Route>
 
               <Route path="*" element={<ErrorComponent />} />
