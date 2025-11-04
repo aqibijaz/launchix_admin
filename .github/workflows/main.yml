@@ -11,27 +11,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 🧾 Step 1 — Checkout the latest code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # ⚙️ Step 2 — Setup Node.js
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
+      # 📦 Step 3 — Install dependencies
       - name: Install dependencies
         run: npm ci
 
+      # 🏗️ Step 4 — Build the project
       - name: Build the project
         run: npm run build
 
+      # 📦 Step 5 — Create build archive (fixed tar issue)
       - name: Archive build files
         run: |
           mkdir -p artifact
-          # include all necessary files except node_modules
-          tar --exclude='./node_modules' -czf artifact/site.tar.gz .
+          # exclude node_modules and artifact folder to prevent re-inclusion
+          tar --exclude='./node_modules' \
+              --exclude='./artifact' \
+              -czf artifact/site.tar.gz .
 
+      # 🚀 Step 6 — Copy archive to EC2
       - name: Copy files to remote server (SCP)
         uses: appleboy/scp-action@v0.1.6
         with:
@@ -42,6 +50,7 @@ jobs:
           source: "artifact/site.tar.gz"
           target: ${{ secrets.REMOTE_PATH }}
 
+      # 🔁 Step 7 — Deploy and restart app on EC2
       - name: Deploy and Restart on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -53,23 +62,28 @@ jobs:
             set -e
             cd "${{ secrets.REMOTE_PATH }}"
 
-            echo "Extracting new build..."
-            tar -xzf artifact/site.tar.gz -C . || true
+            echo "🧹 Cleaning old build..."
+            rm -rf old_build || true
+            mkdir -p old_build
+            mv * old_build/ || true
 
-            echo "Installing production dependencies..."
+            echo "📦 Extracting new build..."
+            tar -xzf artifact/site.tar.gz -C . 
+
+            echo "📦 Installing production dependencies..."
             npm ci --omit=dev
 
-            echo "Restarting app with PM2..."
-            if command -v pm2 >/dev/null 2>&1; then
-              if pm2 describe launchix-admin > /dev/null; then
-                pm2 reload launchix-admin
-              else
-                pm2 start npm --name "launchix-admin" -- start
-              fi
-              pm2 save
-            else
-              echo "⚠️ PM2 not found. Installing..."
+            echo "🔁 Restarting app with PM2..."
+            if ! command -v pm2 >/dev/null 2>&1; then
+              echo "⚙️ Installing PM2..."
               npm install -g pm2
-              pm2 start npm --name "launchix-admin" -- start
-              pm2 save
             fi
+
+            if pm2 describe launchix-admin >/dev/null 2>&1; then
+              pm2 reload launchix-admin
+            else
+              pm2 start npm --name "launchix-admin" -- start
+            fi
+
+            pm2 save
+            echo "✅ Deployment completed successfully!"
