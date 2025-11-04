@@ -1,5 +1,18 @@
-import { SignInForm } from "@/components/refine-ui/form/sign-in-form";
+import { SignIn } from "@clerk/clerk-react";
 
-export const Login = () => {
-  return <SignInForm />;
-};
+export const LoginPage = () => (
+  <div style={{ 
+    display: "flex", 
+    justifyContent: "center", 
+    alignItems: "center",
+    minHeight: "100vh",
+    backgroundColor: "#f5f5f5"
+  }}>
+    <SignIn 
+      routing="path" 
+      path="/sign-in"
+      afterSignInUrl="/blog-posts"
+      redirectUrl="/blog-posts"
+    />
+  </div>
+);

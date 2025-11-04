@@ -1,13 +1,22 @@
 import React from "react";
-import { createRoot } from "react-dom/client";
-
+import ReactDOM from "react-dom/client";
+import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App";
+import "./App.css";
 
-const container = document.getElementById("root") as HTMLElement;
-const root = createRoot(container);
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-root.render(
+if (!PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key. Add VITE_CLERK_PUBLISHABLE_KEY to your .env file");
+}
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <ClerkProvider 
+      publishableKey={PUBLISHABLE_KEY}
+      signInUrl="/sign-in"
+    >
+      <App />
+    </ClerkProvider>
   </React.StrictMode>
 );

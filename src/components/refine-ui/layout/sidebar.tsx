@@ -24,7 +24,6 @@ import { cn } from "@/lib/utils";
 import {
   useLink,
   useMenu,
-  useRefineOptions,
   type TreeMenuItem,
 } from "@refinedev/core";
 import { ChevronRight, ListIcon } from "lucide-react";
@@ -210,7 +209,6 @@ function SidebarItemLink({ item, selectedKey }: MenuItemProps) {
 }
 
 function SidebarHeader() {
-  const { title } = useRefineOptions();
   const { open, isMobile } = useShadcnSidebar();
 
   return (
@@ -243,11 +241,12 @@ function SidebarHeader() {
           }
         )}
       >
-        <div>{title.icon}</div>
+        <div>
+          <img className="h-8 w-auto cursor-pointer" src="/icon.png" />
+        </div>
         <h2
           className={cn(
-            "text-sm",
-            "font-bold",
+            "text-2xl",
             "transition-opacity",
             "duration-200",
             {
@@ -256,7 +255,7 @@ function SidebarHeader() {
             }
           )}
         >
-          {title.text}
+          Launchix
         </h2>
       </div>
 
