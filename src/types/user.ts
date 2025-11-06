@@ -78,6 +78,9 @@ export interface Brand {
   };
   businessName: string;
   industry: string;
+  prompt: string;
+  typeOfWebsite: string;
+  template: string;
   tagline: string;
   brandStyle: string[];
   aiFlags: {

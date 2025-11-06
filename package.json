@@ -88,7 +88,7 @@
     "vite": "^6.4.1"
   },
   "scripts": {
-    "dev": "refine dev",
+    "dev": "refine dev --host",
     "build": "tsc --noEmit --skipLibCheck || true && refine build",
     "start": "refine start",
     "refine": "refine"

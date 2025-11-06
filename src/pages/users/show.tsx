@@ -49,13 +49,13 @@ export const UserShow = () => {
   };
 
 
-   const getInitials = (firstName: string, lastName: string) => {
+  const getInitials = (firstName: string, lastName: string) => {
     const first = firstName ? firstName[0] : "";
     const last = lastName ? lastName[0] : "";
     return `${first}${last}`.toUpperCase();
   };
 
-  if (!userDetail || isLoading ) {
+  if (!userDetail || isLoading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center h-96">
@@ -200,10 +200,11 @@ export const UserShow = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>BrandID</TableHead>
                   <TableHead>Business Name</TableHead>
-                  <TableHead>Industry</TableHead>
-                  <TableHead>Brand Style</TableHead>
-                  <TableHead>Subdomain</TableHead>
+                  <TableHead>Website Type</TableHead>
+                  <TableHead>Template</TableHead>
+                  <TableHead>Prompt</TableHead>
                   <TableHead>Published</TableHead>
                   <TableHead>Published URL</TableHead>
                   <TableHead>Created Time</TableHead>
@@ -216,22 +217,17 @@ export const UserShow = () => {
                     key={brand._id}
                     className="cursor-pointer hover:bg-muted/50"
                   >
-                    <TableCell className="font-medium">{brand.businessName}</TableCell>
-                    <TableCell>{brand.industry}</TableCell>
+                    <TableCell className="font-medium">{brand._id}</TableCell>
+                    <TableCell>{brand.businessName}</TableCell>
                     <TableCell>
-                      {brand.brandStyle?.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {brand.brandStyle.map((style, i) => (
-                            <Badge key={i} variant="secondary">
-                              {style}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        "-"
-                      )}
+                      {brand.typeOfWebsite || '-'}
                     </TableCell>
-                    <TableCell>{brand.subdomain || "-"}</TableCell>
+                    <TableCell>
+                      {brand.template || '-'}
+                    </TableCell>
+                    <TableCell>
+                      {brand.prompt || '-'}
+                    </TableCell>
                     <TableCell>
                       {brand.subdomain ? (
                         <Badge className="bg-green-500 text-white">Yes</Badge>
@@ -256,8 +252,8 @@ export const UserShow = () => {
                       )}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                    {formatDate(brand.createdAt)}
-                  </TableCell>
+                      {formatDate(brand.createdAt)}
+                    </TableCell>
                     {/* <TableCell className="text-right">
                       <Button
                         variant="ghost"
